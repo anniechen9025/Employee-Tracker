@@ -18,7 +18,7 @@ function makeDecision() {
                 viewEmployeeDpt();
                 break;
             case "View All Employees By Manager":
-                viewEmployeeDptMng();
+                viewEmployeeMng();
                 break;
             case "Add Employee":
                 addEmployee();
@@ -27,7 +27,7 @@ function makeDecision() {
                 removeEmployee();
                 break;
             case "Update Employee Role":
-                updateEmployee();
+                updateEmployeeRol();
                 break;
             case "Update Employee Manager":
                 updateEmployeeMng();
