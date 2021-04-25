@@ -98,6 +98,7 @@ function addEmployee() {
                 console.log(data.managerid);
                 let addFirst = data.firstname;
                 let addLast = data.lastname;
+                //how to get the id??
                 let addRoleid = data.roleid;
                 let addMgrid = data.managerid;
 
@@ -164,79 +165,74 @@ const viewEmployeeDpt = () => {
     });
 };
 
-const updateEmployeeRol_db = () => {
-    // console.log('Updating all Rocky Road quantities...\n');
-    // const query = connection.query(
-    //     'UPDATE products SET ? WHERE ?',
-    //     [
-    //         {
-    //             quantity: 100,
-    //         },
-    //         {
-    //             flavor: 'Rocky Road',
-    //         },
-    //     ],
-    //     (err, res) => {
-    //         if (err) throw err;
-    //         console.log(`${res.affectedRows} products updated!\n`);
-    //         // Call deleteProduct AFTER the UPDATE completes
-    //         deleteProduct();
-    //     }
-    // );
-
-    // // logs the actual query being run
-    // console.log(query.sql);
-};
-
-//bonus extra
-const removeEmployee_db = () => {
-    // console.log('Deleting all strawberry icecream...\n');
-    // connection.query(
-    //   'DELETE FROM products WHERE ?',
-    //   {
-    //     flavor: 'strawberry',
-    //   },
-    //   (err, res) => {
-    //     if (err) throw err;
-    //     console.log(`${res.affectedRows} products deleted!\n`);
-    //     // Call readProducts AFTER the DELETE completes
-    //     readProducts();
-    //   }
-    // );
-};
-
-const updateEmployeeMng_db = () => {
-    // console.log('Updating all Rocky Road quantities...\n');
-    // const query = connection.query(
-    //     'UPDATE products SET ? WHERE ?',
-    //     [
-    //         {
-    //             quantity: 100,
-    //         },
-    //         {
-    //             flavor: 'Rocky Road',
-    //         },
-    //     ],
-    //     (err, res) => {
-    //         if (err) throw err;
-    //         console.log(`${res.affectedRows} products updated!\n`);
-    //         // Call deleteProduct AFTER the UPDATE completes
-    //         deleteProduct();
-    //     }
-    // );
-
-    // // logs the actual query being run
-    // console.log(query.sql);
-};
-
-const viewEmployeeMng = () => {
-    console.log('Selecting all products...\n');
-    connection.query('SELECT * FROM employee WHERE ?',
-        {
-            //
-        }, (err, res) => {
+const updateEmployeeRol = () => {
+    const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
+        if (err) throw err;
+        console.log(roleData);
+        connection.query("SELECT first_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managers) => {
             if (err) throw err;
-            console.log(res);
-            connection.end();
+            let roleArray = [];
+            for (let i = 0; i < roleData.length; i++) {
+                roleArray.push(roleData[i].title);
+            }
+            let managerArray = [];
+            for (let i = 0; i < managers.length; i++) {
+                managerArray.push(managers[i].first_name);
+            }
+            inquirer.prompt([{
+                type: "input",
+                name: "firstname",
+                message: "Please update first name:",
+            },
+            {
+                type: "input",
+                name: "lastname",
+                message: "Please update last name:",
+            },
+            {
+                type: "list",
+                name: "roleid",
+                message: "Please update your role:",
+                choices: roleArray,
+            },
+            {
+                type: "list",
+                name: "managerid",
+                message: "Please update your manager",
+                choices: managerArray,
+            }]).then(data => {
+                let addFirst = data.firstname;
+                let addLast = data.lastname;
+                //how to get the id??
+                let addRoleid = data.roleid;
+                let addMgrid = data.managerid;
+                //how to format it correct?
+                let first = first_name: `${addFirst}`;
+                let last = last_name: `${addLast}`;
+                let role = role_id: addRoleid;
+                let manager = manager_id: addMgrid;
+                if(data.firstname = ""){
+                    first = ""
+                };
+                if(data.lasttname = ""){
+                    last = ""
+                };
+                if(data.roleid = ""){
+                    role = ""
+                };
+                if(data.managerid = ""){
+                    manager = ""
+                };
+                connection.query('UPDATE products SET ? WHERE ?',{
+                    first,
+                    last,
+                    role,
+                    manager,
+                },(err,addEmp)=>{
+                    console.log(`${addEmp.first_name} inserted! \n`);
+                })
+            });
         });
+    });
 };
+
