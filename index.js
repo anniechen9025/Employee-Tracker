@@ -58,9 +58,10 @@ function makeDecision() {
 
 //how to reflect manager id to according choice
 function addEmployee() {
-    const query = connection.query("SELECT title FROM roles", (err, roleData) => {
+    const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
-        connection.query("SELECT first_name FROM employee WHERE manager_id IS NULL", (err, managers) => {
+        console.log(roleData);
+        connection.query("SELECT first_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managers) => {
             if (err) throw err;
             let roleArray = [];
             for (let i = 0; i < roleData.length; i++) {
@@ -84,29 +85,35 @@ function addEmployee() {
             {
                 type: "list",
                 name: "roleid",
-                message: "Please insert role ID:",
+                message: "Please select your role:",
                 choices: roleArray,
             },
             {
                 type: "list",
                 name: "managerid",
-                message: "Please insert manager id (if exist)",
+                message: "Please select your manager",
                 choices: managerArray,
             }]).then(data => {
                 console.log(data.roleid);
                 console.log(data.managerid);
-                let a = data.firstname;
-                let b = data.lastname;
-                let c = data.roleid;
-                let d = data.managerid;
+                let addFirst = data.firstname;
+                let addLast = data.lastname;
+                let addRoleid = data.roleid;
+                let addMgrid = data.managerid;
 
-                // addEmployee_db(a,b,c,d);
-            })
-
-            connection.end();
-        })
-        // console.log(roleData);
-    })
+                connection.query('INSERT INTO employee SET ?', {
+                    first_name: `${addFirst}`,
+                    last_name: `${addLast}`,
+                    role_id: addRoleid,
+                    manager_id: addMgrid,
+                }, (err, addEmp) => {
+                    if (err) throw err;
+                    console.log(`${addEmp.first_name} inserted! \n`);
+                    connection.end();
+                });
+            });
+        });
+    });
 
 };
 
@@ -149,32 +156,12 @@ const viewEmployeeDpt = () => {
             INNER JOIN roles ON (employee.role_id = roles.id) 
             INNER JOIN department ON (roles.department_id = department.id)
             WHERE department.name = "${data.dptDecision}"
-            `,(err,dptTable)=>{
+            `, (err, dptTable) => {
                 console.table(dptTable);
                 connection.end();
             });
         });
     });
-};
-
-
-
-const addEmployee_db = (a, b, c, d) => {
-    console.log('Inserting a new product...\n');
-    const query = connection.query(
-        'INSERT INTO employee SET ?',
-        {
-            first_name: `${a}`,
-            last_name: `${b}`,
-            role_id: c,
-            manager_id: d,
-        },
-        (err, res) => {
-            if (err) throw err;
-            console.log(`${res.affectedRows} product inserted!\n`);
-        }
-    );
-    console.log(query.sql);
 };
 
 const updateEmployeeRol_db = () => {
