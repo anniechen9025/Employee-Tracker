@@ -16,16 +16,15 @@ connection.connect((err) => {
     makeDecision();
 });
 
-const decision = [{
-    type: "list",
-    name: "decision",
-    message: "What would you like to do?",
-    choices: ["View All Employees", "View All Employees By Department", "Add Employee", "Update Employee Role", "View All Employees By Manager", "Update Employee Manager", "Remove Employee"]
-}];
 
 //Prompt Function
 function makeDecision() {
-    inquirer.prompt(decision).then(data => {
+    inquirer.prompt([{
+        type: "list",
+        name: "decision",
+        message: "What would you like to do?",
+        choices: ["View All Employees", "View All Employees By Department", "Add Employee", "Update Employee Role", "View All Employees By Manager", "Update Employee Manager", "Remove Employee"]
+    }]).then(data => {
 
         switch (data.decision) {
             case "View All Employees":
@@ -211,24 +210,24 @@ const updateEmployeeRol = () => {
                 let last = last_name: `${addLast}`;
                 let role = role_id: addRoleid;
                 let manager = manager_id: addMgrid;
-                if(data.firstname = ""){
+                if (data.firstname = "") {
                     first = ""
                 };
-                if(data.lasttname = ""){
+                if (data.lasttname = "") {
                     last = ""
                 };
-                if(data.roleid = ""){
+                if (data.roleid = "") {
                     role = ""
                 };
-                if(data.managerid = ""){
+                if (data.managerid = "") {
                     manager = ""
                 };
-                connection.query('UPDATE products SET ? WHERE ?',{
+                connection.query('UPDATE products SET ? WHERE ?', {
                     first,
                     last,
                     role,
                     manager,
-                },(err,addEmp)=>{
+                }, (err, addEmp) => {
                     console.log(`${addEmp.first_name} inserted! \n`);
                 })
             });
