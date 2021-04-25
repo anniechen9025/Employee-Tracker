@@ -20,7 +20,7 @@ const decision = [{
     type: "list",
     name: "decision",
     message: "What would you like to do?",
-    choices: ["View All Employees", "View All Employees By Department",  "Add Employee", "Update Employee Role","View All Employees By Manager",  "Update Employee Manager","Remove Employee"]
+    choices: ["View All Employees", "View All Employees By Department", "Add Employee", "Update Employee Role", "View All Employees By Manager", "Update Employee Manager", "Remove Employee"]
 }];
 
 //Prompt Function
@@ -137,6 +137,23 @@ const viewEmployeeDpt = () => {
             departmentArray.push(dptData[i].name);
         }
         console.log(departmentArray);
+        inquirer.prompt([{
+            type: "list",
+            name: "dptDecision",
+            message: "Which Department would you like to see?",
+            choices: departmentArray,
+        }]).then(data => {
+            console.log(data.dptDecision);
+            connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
+            FROM employee
+            INNER JOIN roles ON (employee.role_id = roles.id) 
+            INNER JOIN department ON (roles.department_id = department.id)
+            WHERE department.name = "${data.dptDecision}"
+            `,(err,dptTable)=>{
+                console.table(dptTable);
+                connection.end();
+            });
+        });
     });
 };
 
