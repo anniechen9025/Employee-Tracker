@@ -229,6 +229,7 @@ const updateEmployeeRol = () => {
                     manager,
                 }, (err, addEmp) => {
                     console.log(`${addEmp.first_name} inserted! \n`);
+                    connection.end();
                 })
             });
         });
