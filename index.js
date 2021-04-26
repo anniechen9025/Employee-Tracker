@@ -200,34 +200,6 @@ const updateEmployeeRol = () => {
     });
 };
 
-const removeEmployee = () => {
-    console.log('Deleting the selected employee info...\n');
-    connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employee) => {
-        if (err) throw err;
-        let employeeArray = employee.map(({ id, first_name }) => (
-            {
-                name: first_name,
-                value: id
-            }));
-        inquirer.prompt([
-            {
-                type: "list",
-                name: "pickemployee",
-                message: "Which employee do you want to remove from database",
-                choices: employeeArray,
-            }]).then(data => {
-                let addEmpid = data.pickemployee;
-                connection.query('DELETE FROM employee WHERE id= ?', [
-                    addEmpid
-                ], (err, addEmp) => {
-                    console.log(`Selected employee deleted! \n`);
-                    connection.end();
-                })
-
-            });
-    });
-};
-
 const updateEmployeeMng = () => {
     const query = connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employeeData) => {
         if (err) throw err;
@@ -266,5 +238,33 @@ const updateEmployeeMng = () => {
                     })
                 });
         });
+    });
+};
+
+const removeEmployee = () => {
+    console.log('Deleting the selected employee info...\n');
+    connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employee) => {
+        if (err) throw err;
+        let employeeArray = employee.map(({ id, first_name }) => (
+            {
+                name: first_name,
+                value: id
+            }));
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "pickemployee",
+                message: "Which employee do you want to remove from database",
+                choices: employeeArray,
+            }]).then(data => {
+                let addEmpid = data.pickemployee;
+                connection.query('DELETE FROM employee WHERE id= ?', [
+                    addEmpid
+                ], (err, addEmp) => {
+                    console.log(`Selected employee deleted! \n`);
+                    connection.end();
+                })
+
+            });
     });
 };
