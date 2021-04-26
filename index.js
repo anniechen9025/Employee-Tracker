@@ -55,14 +55,16 @@ function makeDecision() {
     });
 };
 
-//how to reflect manager id to according choice
-function addEmployee() {
+
+
+//DataBase Function
+const addEmployee = () => {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
         console.log(roleData);
         connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL",
             (err, managers) => {
-                console.log(managers);
+                // console.log(managers);
                 if (err) throw err;
                 let roleArray = roleData.map(({ id, title }) => ({
                     name: title,
@@ -74,7 +76,7 @@ function addEmployee() {
                         name: first_name,
                         value: id
                     }));
-                console.log(roleArray);
+                // console.log(roleArray);
                 inquirer.prompt([{
                     type: "input",
                     name: "firstname",
@@ -115,12 +117,10 @@ function addEmployee() {
                         connection.end();
                     });
                 });
+
             });
     });
-
 };
-
-//DataBase Function
 
 const viewEmployees = () => {
     console.log('Selecting all employees...\n');
@@ -209,3 +209,18 @@ const updateEmployeeRol = () => {
     });
 };
 
+const deleteProduct = () => {
+    console.log('Deleting all strawberry icecream...\n');
+    connection.query(
+        'DELETE FROM products WHERE ?',
+        {
+            flavor: 'strawberry',
+        },
+        (err, res) => {
+            if (err) throw err;
+            console.log(`${res.affectedRows} products deleted!\n`);
+            // Call readProducts AFTER the DELETE completes
+            readProducts();
+        }
+    );
+};
