@@ -55,13 +55,10 @@ function makeDecision() {
     });
 };
 
-
-
 //DataBase Function
 const addEmployee = () => {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
-        console.log(roleData);
         connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL",
             (err, managers) => {
                 // console.log(managers);
@@ -76,7 +73,6 @@ const addEmployee = () => {
                         name: first_name,
                         value: id
                     }));
-                // console.log(roleArray);
                 inquirer.prompt([{
                     type: "input",
                     name: "firstname",
@@ -137,23 +133,19 @@ const viewEmployees = () => {
 };
 
 const viewEmployeeDpt = () => {
-    console.log('Selecting all ..\n');
+    console.log('Selecting Department for the employee ..\n');
     connection.query('SELECT name FROM department', (err, dptData) => {
-        //promt
-        //queries(select the columns i want to show)
         if (err) throw err;
         let departmentArray = [];
         for (let i = 0; i < dptData.length; i++) {
             departmentArray.push(dptData[i].name);
         }
-        console.log(departmentArray);
         inquirer.prompt([{
             type: "list",
             name: "dptDecision",
             message: "Which Department would you like to see?",
             choices: departmentArray,
         }]).then(data => {
-            console.log(data.dptDecision);
             connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
             FROM employee
             INNER JOIN roles ON (employee.role_id = roles.id) 
@@ -170,7 +162,6 @@ const viewEmployeeDpt = () => {
 const updateEmployeeRol = () => {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
-        console.log(roleData);
         connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employee) => {
             if (err) throw err;
             let employeeArray = employee.map(({ id, first_name }) => (
@@ -200,7 +191,7 @@ const updateEmployeeRol = () => {
                             roleData.roleid,
                             addEmpid
                         ], (err, addEmp) => {
-                            console.log(`${addEmp.first_name} inserted! \n`);
+                            console.log(`Employee's role updated! \n`);
                             connection.end();
                         })
                     })
@@ -240,7 +231,6 @@ const removeEmployee = () => {
 const updateEmployeeMng = () => {
     const query = connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employeeData) => {
         if (err) throw err;
-        console.log(employeeData);
         connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managerData) => {
             if (err) throw err;
             let employeeArray = employeeData.map(({ id, first_name }) => ({
