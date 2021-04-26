@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
-
+require("console.table");
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -60,59 +60,62 @@ function addEmployee() {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
         console.log(roleData);
-        connection.query("SELECT first_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managers) => {
-            if (err) throw err;
-            let roleArray = [];
-            for (let i = 0; i < roleData.length; i++) {
-                roleArray.push(roleData[i].title);
-            }
-            let managerArray = [];
-            for (let i = 0; i < managers.length; i++) {
-                managerArray.push(managers[i].first_name);
-            }
-            console.log(roleArray);
-            inquirer.prompt([{
-                type: "input",
-                name: "firstname",
-                message: "Please insert first name:",
-            },
-            {
-                type: "input",
-                name: "lastname",
-                message: "Please insert last name:",
-            },
-            {
-                type: "list",
-                name: "roleid",
-                message: "Please select your role:",
-                choices: roleArray,
-            },
-            {
-                type: "list",
-                name: "managerid",
-                message: "Please select your manager",
-                choices: managerArray,
-            }]).then(data => {
-                console.log(data.roleid);
-                console.log(data.managerid);
-                let addFirst = data.firstname;
-                let addLast = data.lastname;
-                //how to get the id??
-                let addRoleid = data.roleid;
-                let addMgrid = data.managerid;
+        connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL",
+            (err, managers) => {
+                console.log(managers);
+                if (err) throw err;
+                let roleArray = roleData.map(({ id, title }) => ({
+                    name: title,
+                    value: id
+                }));
 
-                connection.query('INSERT INTO employee SET ?', {
-                    first_name: `${addFirst}`,
-                    last_name: `${addLast}`,
-                    role_id: addRoleid,
-                    manager_id: addMgrid,
-                }, (err, addEmp) => {
-                    if (err) throw err;
-                    console.log(`${addEmp.first_name} inserted! \n`);
-                    connection.end();
+                let managerArray = managers.map(({ id, first_name }) => (
+                    {
+                        name: first_name,
+                        value: id
+                    }));
+                console.log(roleArray);
+                inquirer.prompt([{
+                    type: "input",
+                    name: "firstname",
+                    message: "Please insert first name:",
+                },
+                {
+                    type: "input",
+                    name: "lastname",
+                    message: "Please insert last name:",
+                },
+                {
+                    type: "list",
+                    name: "roleid",
+                    message: "Please select your role:",
+                    choices: roleArray,
+                },
+                {
+                    type: "list",
+                    name: "managerid",
+                    message: "Please select your manager",
+                    choices: managerArray,
+                }]).then(data => {
+                    console.log(data.roleid);
+                    console.log(data.managerid);
+                    let addFirst = data.firstname;
+                    let addLast = data.lastname;
+                    let addRoleid = data.roleid;
+                    let addMgrid = data.managerid;
+
+                    connection.query('INSERT INTO employee SET ?', {
+                        first_name: `${addFirst}`,
+                        last_name: `${addLast}`,
+                        role_id: addRoleid,
+                        manager_id: addMgrid,
+                    }, (err, addEmp) => {
+                        if (err) throw err;
+                        console.log(`employee inserted! \n`);
+                        connection.end();
+                    });
                 });
             });
-        });
     });
 
 };
@@ -122,7 +125,7 @@ function addEmployee() {
 const viewEmployees = () => {
     console.log('Selecting all employees...\n');
     connection.query(`
-    SELECT employee.id, employee.first_name, employee.last_name, roles.salary, roles.title, department.name, CONCAT(employee.first_name," ", employee.last_name ) AS manager 
+    SELECT employee.id, employee.first_name, employee.last_name, roles.salary, roles.title, department.name, CONCAT(manager.first_name," ", manager.last_name ) AS manager 
     FROM employee 
     INNER JOIN roles ON employee.role_id = roles.id 
     INNER JOIN department ON roles.department_id = department.id 
@@ -168,70 +171,40 @@ const updateEmployeeRol = () => {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
         console.log(roleData);
-        connection.query("SELECT first_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managers) => {
+        connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employee) => {
             if (err) throw err;
-            let roleArray = [];
-            for (let i = 0; i < roleData.length; i++) {
-                roleArray.push(roleData[i].title);
-            }
-            let managerArray = [];
-            for (let i = 0; i < managers.length; i++) {
-                managerArray.push(managers[i].first_name);
-            }
-            inquirer.prompt([{
-                type: "input",
-                name: "firstname",
-                message: "Please update first name:",
-            },
-            {
-                type: "input",
-                name: "lastname",
-                message: "Please update last name:",
-            },
-            {
-                type: "list",
-                name: "roleid",
-                message: "Please update your role:",
-                choices: roleArray,
-            },
-            {
-                type: "list",
-                name: "managerid",
-                message: "Please update your manager",
-                choices: managerArray,
-            }]).then(data => {
-                let addFirst = data.firstname;
-                let addLast = data.lastname;
-                //how to get the id??
-                let addRoleid = data.roleid;
-                let addMgrid = data.managerid;
-                //how to format it correct?
-                let first = first_name: `${addFirst}`;
-                let last = last_name: `${addLast}`;
-                let role = role_id: addRoleid;
-                let manager = manager_id: addMgrid;
-                if (data.firstname = "") {
-                    first = ""
-                };
-                if (data.lasttname = "") {
-                    last = ""
-                };
-                if (data.roleid = "") {
-                    role = ""
-                };
-                if (data.managerid = "") {
-                    manager = ""
-                };
-                connection.query('UPDATE products SET ? WHERE ?', {
-                    first,
-                    last,
-                    role,
-                    manager,
-                }, (err, addEmp) => {
-                    console.log(`${addEmp.first_name} inserted! \n`);
-                    connection.end();
-                })
-            });
+            let employeeArray = employee.map(({ id, first_name }) => (
+                {
+                    name: first_name,
+                    value: id
+                }));
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "managerid",
+                    message: "Who do you want to update employee",
+                    choices: employeeArray,
+                }]).then(data => {
+                    let addEmpid = data.managerid;
+                    let roleArray = roleData.map(({ id, title }) => ({
+                        name: title,
+                        value: id
+                    }));
+                    inquirer.prompt([{
+                        type: "list",
+                        name: "roleid",
+                        message: "Which role you want to pick",
+                        choices: roleArray,
+                    }]).then(roleData => {
+                        connection.query('UPDATE employee SET role_id = ? WHERE id= ?', [
+                            roleData.roleid,
+                            addEmpid
+                        ], (err, addEmp) => {
+                            console.log(`${addEmp.first_name} inserted! \n`);
+                            connection.end();
+                        })
+                    })
+                });
         });
     });
 };
