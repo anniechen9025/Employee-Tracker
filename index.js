@@ -46,7 +46,7 @@ function makeDecision() {
                 updateEmployeeRol();
                 break;
             case "Update Employee Manager":
-                // updateEmployeeMng();
+                updateEmployeeMng();
                 break;
             default:
                 return;
@@ -234,5 +234,47 @@ const removeEmployee = () => {
                 })
 
             });
+    });
+};
+
+const updateEmployeeMng = () => {
+    const query = connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employeeData) => {
+        if (err) throw err;
+        console.log(employeeData);
+        connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL", (err, managerData) => {
+            if (err) throw err;
+            let employeeArray = employeeData.map(({ id, first_name }) => ({
+                name: first_name,
+                value: id
+            }));
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "managerid",
+                    message: "Which employee do you want to update manager?",
+                    choices: employeeArray,
+                }]).then(data => {
+                    let addEmpid = data.managerid;
+                    let managerArray = managerData.map(({ id, first_name }) => (
+                        {
+                            name: first_name,
+                            value: id
+                        }));
+                    inquirer.prompt([{
+                        type: "list",
+                        name: "upmanager",
+                        message: "Which manager you want to change to?",
+                        choices: managerArray,
+                    }]).then(Data => {
+                        connection.query('UPDATE employee SET manager_id = ? WHERE id= ?', [
+                            Data.upmanager,
+                            addEmpid
+                        ], (err, addEmp) => {
+                            console.log(`Employee's Manger get updated! \n`);
+                            connection.end();
+                        })
+                    })
+                });
+        });
     });
 };
