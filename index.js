@@ -40,7 +40,7 @@ function makeDecision() {
                 addEmployee();
                 break;
             case "Remove Employee":
-                // removeEmployee();
+                removeEmployee();
                 break;
             case "Update Employee Role":
                 updateEmployeeRol();
@@ -209,18 +209,30 @@ const updateEmployeeRol = () => {
     });
 };
 
-const deleteProduct = () => {
-    console.log('Deleting all strawberry icecream...\n');
-    connection.query(
-        'DELETE FROM products WHERE ?',
-        {
-            flavor: 'strawberry',
-        },
-        (err, res) => {
-            if (err) throw err;
-            console.log(`${res.affectedRows} products deleted!\n`);
-            // Call readProducts AFTER the DELETE completes
-            readProducts();
-        }
-    );
+const removeEmployee = () => {
+    console.log('Deleting the selected employee info...\n');
+    connection.query("SELECT id, first_name, last_name, role_id FROM employee", (err, employee) => {
+        if (err) throw err;
+        let employeeArray = employee.map(({ id, first_name }) => (
+            {
+                name: first_name,
+                value: id
+            }));
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "pickemployee",
+                message: "Which employee do you want to remove from database",
+                choices: employeeArray,
+            }]).then(data => {
+                let addEmpid = data.pickemployee;
+                connection.query('DELETE FROM employee WHERE id= ?', [
+                    addEmpid
+                ], (err, addEmp) => {
+                    console.log(`Selected employee deleted! \n`);
+                    connection.end();
+                })
+
+            });
+    });
 };
