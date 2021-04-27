@@ -23,7 +23,7 @@ function makeDecision() {
         type: "list",
         name: "decision",
         message: "What would you like to do?",
-        choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Update Employee Role", "Update Employee Manager", "Add Employee", "Add Department", "Add Role", "Remove Employee", "Remove Department","Remove Role"]
+        choices: ["View All Employees", "View All Employees By Department", "View All Employees By Role", "View All Employees By Manager", "Update Employee Role", "Update Employee Manager", "Add Employee", "Add Department", "Add Role", "Remove Employee", "Remove Department", "Remove Role"]
     }]).then(data => {
 
         switch (data.decision) {
@@ -34,7 +34,7 @@ function makeDecision() {
                 viewEmployeeDpt();
                 break;
             case "View All Employees By Role":
-                //viewEmployeeRle();
+                viewEmployeeRle();
                 break;
             case "View All Employees By Manager":
                 viewEmployeeMng();
@@ -52,10 +52,10 @@ function makeDecision() {
                 removeEmployee();
                 break;
             case "Remove Department":
-                //removeDepartment();
+                removeDepartment();
                 break;
             case "Remove Role":
-                //removeRole();
+                removeRole();
                 break;
             case "Update Employee Role":
                 updateEmployeeRol();
@@ -122,7 +122,7 @@ const addEmployee = () => {
                         last_name: `${addLast}`,
                         role_id: addRoleid,
                         manager_id: addMgrid,
-                    }, (err, addEmp) => {
+                    }, (err, res) => {
                         if (err) throw err;
                         console.log(`employee inserted! \n`);
                         connection.end();
@@ -134,7 +134,6 @@ const addEmployee = () => {
 };
 
 const addDepartment = () => {
-    if (err) throw err;
     inquirer.prompt([{
         type: "input",
         name: "department",
@@ -150,9 +149,6 @@ const addDepartment = () => {
             connection.end();
         });
     });
-
-
-
 };
 
 const addRole = () => {
@@ -178,7 +174,7 @@ const addRole = () => {
                 let addTitle = data.rolename;
                 let dptid = data.dptid;
 
-                connection.query('INSERT INTO employee SET ?', {
+                connection.query('INSERT INTO roles SET ?', {
                     title: `${addTitle}`,
                     department_id: dptid,
                 }, (err, res) => {
@@ -226,6 +222,7 @@ const viewEmployeeDpt = () => {
             INNER JOIN department ON (roles.department_id = department.id)
             WHERE department.name = "${data.dptDecision}"
             `, (err, dptTable) => {
+                if (err) throw err;
                 console.table(dptTable);
                 connection.end();
             });
@@ -234,26 +231,27 @@ const viewEmployeeDpt = () => {
 };
 
 const viewEmployeeRle = () => {
-    console.log('Selecting Department for the employee ..\n');
-    connection.query('SELECT name FROM department', (err, dptData) => {
+    console.log('Selecting Role for the employee ..\n');
+    connection.query('SELECT title FROM roles', (err, rleData) => {
         if (err) throw err;
-        let departmentArray = [];
-        for (let i = 0; i < dptData.length; i++) {
-            departmentArray.push(dptData[i].name);
+        let roleArray = [];
+        for (let i = 0; i < rleData.length; i++) {
+            roleArray.push(rleData[i].title);
         }
         inquirer.prompt([{
             type: "list",
-            name: "dptDecision",
-            message: "Which Department would you like to see?",
-            choices: departmentArray,
+            name: "rleDecision",
+            message: "Which Role would you like to see?",
+            choices: roleArray,
         }]).then(data => {
             connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
             FROM employee
             INNER JOIN roles ON (employee.role_id = roles.id) 
             INNER JOIN department ON (roles.department_id = department.id)
-            WHERE department.name = "${data.dptDecision}"
-            `, (err, dptTable) => {
-                console.table(dptTable);
+            WHERE roles.title = "${data.rleDecision}"
+            `, (err, rleTable) => {
+                if (err) throw err;
+                console.table(rleTable);
                 connection.end();
             });
         });
@@ -280,6 +278,7 @@ const viewEmployeeMng = () => {
             INNER JOIN department ON (roles.department_id = department.id)
             WHERE manager_id = "${data.mgrDecision}"
             `, (err, mgrTable) => {
+                if (err) throw err;
                 console.table(mgrTable);
                 connection.end();
             });
@@ -318,7 +317,8 @@ const updateEmployeeRol = () => {
                         connection.query('UPDATE employee SET role_id = ? WHERE id= ?', [
                             roleData.roleid,
                             addEmpid
-                        ], (err, addEmp) => {
+                        ], (err, res) => {
+                            if (err) throw err;
                             console.log(`Employee's role updated! \n`);
                             connection.end();
                         })
@@ -359,7 +359,8 @@ const updateEmployeeMng = () => {
                         connection.query('UPDATE employee SET manager_id = ? WHERE id= ?', [
                             Data.upmanager,
                             addEmpid
-                        ], (err, addEmp) => {
+                        ], (err, res) => {
+                            if (err) throw err;
                             console.log(`Employee's Manger get updated! \n`);
                             connection.end();
                         })
@@ -388,8 +389,67 @@ const removeEmployee = () => {
                 let addEmpid = data.pickemployee;
                 connection.query('DELETE FROM employee WHERE id= ?', [
                     addEmpid
-                ], (err, addEmp) => {
+                ], (err, res) => {
+                    if (err) throw err;
                     console.log(`Selected employee deleted! \n`);
+                    connection.end();
+                })
+
+            });
+    });
+};
+
+const removeDepartment = () => {
+    console.log('Deleting the selected Department info...\n');
+    connection.query("SELECT id, name FROM department", (err, dptData) => {
+        if (err) throw err;
+        let departmentArray = dptData.map(({ id, name }) => (
+            {
+                name: name,
+                value: id
+            }));
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "pickdepartment",
+                message: "Which department do you want to remove from database",
+                choices: departmentArray,
+            }]).then(data => {
+                let removedpt = data.pickdepartment;
+                connection.query('DELETE FROM department WHERE id= ?', [
+                    removedpt
+                ], (err, res) => {
+                    if (err) throw err;
+                    console.log(`Selected department deleted! \n`);
+                    connection.end();
+                })
+
+            });
+    });
+};
+
+const removeRole = () => {
+    console.log('Deleting the selected roles info...\n');
+    connection.query("SELECT id, title FROM roles", (err, roleData) => {
+        if (err) throw err;
+        let roleArray = roleData.map(({ id, title }) => (
+            {
+                name: title,
+                value: id
+            }));
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "pickrole",
+                message: "Which role do you want to remove from database",
+                choices: roleArray,
+            }]).then(data => {
+                let addRleid = data.pickrole;
+                connection.query('DELETE FROM roles WHERE id= ?', [
+                    addRleid
+                ], (err, res) => {
+                    if (err) throw err;
+                    console.log(`Selected role deleted! \n`);
                     connection.end();
                 })
 
