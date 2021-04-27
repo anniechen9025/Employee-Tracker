@@ -159,6 +159,33 @@ const viewEmployeeDpt = () => {
     });
 };
 
+const viewEmployeeMng = () => {
+    console.log('Selecting Manager for the employee ..\n');
+    connection.query('SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL', (err, mgrData) => {
+        if (err) throw err;
+        let managerArray = mgrData.map(({ id, first_name }) => ({
+            name: first_name,
+            value: id
+        }));
+        inquirer.prompt([{
+            type: "list",
+            name: "mgrDecision",
+            message: "Which Manager would you like to see?",
+            choices: managerArray,
+        }]).then(data => {
+            connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
+            FROM employee
+            INNER JOIN roles ON (employee.role_id = roles.id) 
+            INNER JOIN department ON (roles.department_id = department.id)
+            WHERE department.name = "${data.mgrDecision}"
+            `, (err, mgrTable) => {
+                console.table(mgrTable);
+                connection.end();
+            });
+        });
+    });
+};
+
 const updateEmployeeRol = () => {
     const query = connection.query("SELECT title, roles.id FROM roles", (err, roleData) => {
         if (err) throw err;
