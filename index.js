@@ -76,7 +76,6 @@ const addEmployee = () => {
         if (err) throw err;
         connection.query("SELECT id,first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL",
             (err, managers) => {
-                // console.log(managers);
                 if (err) throw err;
                 let roleArray = roleData.map(({ id, title }) => ({
                     name: title,
@@ -110,8 +109,6 @@ const addEmployee = () => {
                     message: "Please select your manager",
                     choices: managerArray,
                 }]).then(data => {
-                    console.log(data.roleid);
-                    console.log(data.managerid);
                     let addFirst = data.firstname;
                     let addLast = data.lastname;
                     let addRoleid = data.roleid;
