@@ -23,7 +23,7 @@ function makeDecision() {
         type: "list",
         name: "decision",
         message: "What would you like to do?",
-        choices: ["View All Employees", "View All Employees By Department", "Add Employee", "Update Employee Role", "View All Employees By Manager", "Update Employee Manager", "Remove Employee"]
+        choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Update Employee Role", "Update Employee Manager", "Add Employee", "Add Department", "Add Role", "Remove Employee", "Remove Department","Remove Role"]
     }]).then(data => {
 
         switch (data.decision) {
@@ -33,14 +33,29 @@ function makeDecision() {
             case "View All Employees By Department":
                 viewEmployeeDpt();
                 break;
+            case "View All Employees By Role":
+                //viewEmployeeRle();
+                break;
             case "View All Employees By Manager":
                 viewEmployeeMng();
                 break;
             case "Add Employee":
                 addEmployee();
                 break;
+            case "Add Role":
+                addRole();
+                break;
+            case "Add Department":
+                addDepartment();
+                break;
             case "Remove Employee":
                 removeEmployee();
+                break;
+            case "Remove Department":
+                //removeDepartment();
+                break;
+            case "Remove Role":
+                //removeRole();
                 break;
             case "Update Employee Role":
                 updateEmployeeRol();
@@ -118,6 +133,65 @@ const addEmployee = () => {
     });
 };
 
+const addDepartment = () => {
+    if (err) throw err;
+    inquirer.prompt([{
+        type: "input",
+        name: "department",
+        message: "Please insert the new department name:",
+    }]).then(data => {
+        let addDpt = data.department;
+
+        connection.query('INSERT INTO department SET ?', {
+            name: `${addDpt}`,
+        }, (err, res) => {
+            if (err) throw err;
+            console.log(`New department inserted! \n`);
+            connection.end();
+        });
+    });
+
+
+
+};
+
+const addRole = () => {
+    const query = connection.query("SELECT id, name FROM department",
+        (err, dptData) => {
+            if (err) throw err;
+            let departmentArray = dptData.map(({ id, name }) => ({
+                name: name,
+                value: id
+            }));
+
+            inquirer.prompt([{
+                type: "list",
+                name: "dptid",
+                message: "Please select the department you want to creat role.",
+                choices: departmentArray,
+            },
+            {
+                type: "input",
+                name: "rolename",
+                message: "Please insert role's name:",
+            }]).then(data => {
+                let addTitle = data.rolename;
+                let dptid = data.dptid;
+
+                connection.query('INSERT INTO employee SET ?', {
+                    title: `${addTitle}`,
+                    department_id: dptid,
+                }, (err, res) => {
+                    if (err) throw err;
+                    console.log(`role inserted! \n`);
+                    connection.end();
+                });
+            });
+
+        });
+
+};
+
 const viewEmployees = () => {
     console.log('Selecting all employees...\n');
     connection.query(`
@@ -133,6 +207,33 @@ const viewEmployees = () => {
 };
 
 const viewEmployeeDpt = () => {
+    console.log('Selecting Department for the employee ..\n');
+    connection.query('SELECT name FROM department', (err, dptData) => {
+        if (err) throw err;
+        let departmentArray = [];
+        for (let i = 0; i < dptData.length; i++) {
+            departmentArray.push(dptData[i].name);
+        }
+        inquirer.prompt([{
+            type: "list",
+            name: "dptDecision",
+            message: "Which Department would you like to see?",
+            choices: departmentArray,
+        }]).then(data => {
+            connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
+            FROM employee
+            INNER JOIN roles ON (employee.role_id = roles.id) 
+            INNER JOIN department ON (roles.department_id = department.id)
+            WHERE department.name = "${data.dptDecision}"
+            `, (err, dptTable) => {
+                console.table(dptTable);
+                connection.end();
+            });
+        });
+    });
+};
+
+const viewEmployeeRle = () => {
     console.log('Selecting Department for the employee ..\n');
     connection.query('SELECT name FROM department', (err, dptData) => {
         if (err) throw err;
