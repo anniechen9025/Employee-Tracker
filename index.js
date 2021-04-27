@@ -34,7 +34,7 @@ function makeDecision() {
                 viewEmployeeDpt();
                 break;
             case "View All Employees By Manager":
-                // viewEmployeeMng();
+                viewEmployeeMng();
                 break;
             case "Add Employee":
                 addEmployee();
@@ -173,11 +173,11 @@ const viewEmployeeMng = () => {
             message: "Which Manager would you like to see?",
             choices: managerArray,
         }]).then(data => {
-            connection.query(`SELECT department.name,employee.id, employee.first_name, employee.last_name,roles.title
+            connection.query(`SELECT employee.id, employee.first_name, employee.last_name,roles.title
             FROM employee
             INNER JOIN roles ON (employee.role_id = roles.id) 
             INNER JOIN department ON (roles.department_id = department.id)
-            WHERE department.name = "${data.mgrDecision}"
+            WHERE manager_id = "${data.mgrDecision}"
             `, (err, mgrTable) => {
                 console.table(mgrTable);
                 connection.end();
